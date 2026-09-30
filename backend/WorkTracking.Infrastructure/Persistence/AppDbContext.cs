@@ -115,5 +115,42 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(a => a.UserId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Role>().HasData(
+new Role { Id = 1, Name = "Admin" },
+new Role { Id = 2, Name = "Manager" },
+new Role { Id = 3, Name = "Employee" }
+);
+
+        modelBuilder.Entity<Department>().HasData(
+            new Department
+            {
+                Id = 1,
+                Name = "Software",
+                Description = "Software Development Department",
+                IsActive = true
+            },
+            new Department
+            {
+                Id = 2,
+                Name = "Human Resources",
+                Description = "Human Resources Department",
+                IsActive = true
+            },
+            new Department
+            {
+                Id = 3,
+                Name = "Accounting",
+                Description = "Accounting Department",
+                IsActive = true
+            },
+            new Department
+            {
+                Id = 4,
+                Name = "Marketing",
+                Description = "Marketing Department",
+                IsActive = true
+            }
+        );
     }
 }
