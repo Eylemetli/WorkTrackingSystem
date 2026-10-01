@@ -14,4 +14,7 @@ public interface ITaskService
     Task<TaskDto?> UpdateAsync(
         int id,
         UpdateTaskRequest request);
+
+    Task<List<TaskDto>> GetByAssignedUserAsync(int userId);
+    Task<TaskDto?> UpdateStatusAsync(int taskId, int userId, int status);
 }

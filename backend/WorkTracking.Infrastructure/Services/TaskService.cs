@@ -148,4 +148,59 @@ public class TaskService : ITaskService
 
         return await GetByIdAsync(id);
     }
+
+    public async Task<List<TaskDto>> GetByAssignedUserAsync(int userId)
+    {
+        return await _context.Tasks
+            .AsNoTracking()
+            .Include(t => t.Project)
+            .Include(t => t.AssignedUser)
+            .Where(t => t.AssignedUserId == userId)
+            .Select(t => new TaskDto
+            {
+                Id = t.Id,
+                Title = t.Title,
+                Description = t.Description,
+                ProjectId = t.ProjectId,
+                ProjectName = t.Project.Name,
+                AssignedUserId = t.AssignedUserId,
+                AssignedUserName = t.AssignedUser.FirstName + " " + t.AssignedUser.LastName,
+                Priority = t.Priority.ToString(),
+                Status = t.Status.ToString(),
+                DueDate = t.DueDate,
+                CreatedAt = t.CreatedAt
+            })
+            .ToListAsync();
+    }
+
+    public async Task<TaskDto?> UpdateStatusAsync(
+        int taskId,
+        int userId,
+        int status)
+    {
+        var task = await _context.Tasks
+            .FirstOrDefaultAsync(t =>
+                t.Id == taskId &&
+                t.AssignedUserId == userId);
+
+        if (task is null)
+            return null;
+
+        if (!Enum.IsDefined(
+            typeof(WorkTracking.Domain.Enums.TaskStatus),
+            status))
+        {
+            throw new InvalidOperationException(
+                "Geçersiz görev durumu.");
+        }
+
+        task.Status =
+            (WorkTracking.Domain.Enums.TaskStatus)status;
+
+        task.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return await GetByIdAsync(taskId);
+    }
 }
