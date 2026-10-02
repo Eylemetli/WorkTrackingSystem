@@ -11,15 +11,17 @@ public class TaskService : ITaskService
 {
     private readonly AppDbContext _context;
     private readonly INotificationService _notificationService;
+    private readonly IAuditLogService _auditLogService;
 
     public TaskService(
         AppDbContext context,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IAuditLogService auditLogService)
     {
         _context = context;
         _notificationService = notificationService;
+        _auditLogService = auditLogService;
     }
-
     public async Task<List<TaskDto>> GetAllAsync()
     {
         return await _context.Tasks
@@ -110,6 +112,22 @@ public class TaskService : ITaskService
 
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync();
+
+        await _auditLogService.CreateAsync(
+            createdByUserId,
+            "Create",
+            "Task",
+            task.Id,
+            $"Yeni görev oluşturuldu: {task.Title}"
+        );
+
+        await _notificationService.CreateAsync(
+            new WorkTracking.Application.DTOs.Notifications.CreateNotificationRequest
+            {
+                UserId = request.AssignedUserId,
+                Title = "Yeni görev atandı",
+                Message = $"Size '{request.Title}' adlı yeni bir görev atandı."
+            });
 
         await _notificationService.CreateAsync(
     new WorkTracking.Application.DTOs.Notifications.CreateNotificationRequest

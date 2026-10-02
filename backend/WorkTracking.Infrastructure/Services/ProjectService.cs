@@ -10,10 +10,14 @@ namespace WorkTracking.Infrastructure.Services;
 public class ProjectService : IProjectService
 {
     private readonly AppDbContext _context;
+    private readonly IAuditLogService _auditLogService;
 
-    public ProjectService(AppDbContext context)
+    public ProjectService(
+        AppDbContext context,
+        IAuditLogService auditLogService)
     {
         _context = context;
+        _auditLogService = auditLogService;
     }
 
     public async Task<List<ProjectDto>> GetAllAsync()
@@ -84,6 +88,14 @@ public class ProjectService : IProjectService
 
         _context.Projects.Add(project);
         await _context.SaveChangesAsync();
+
+        await _auditLogService.CreateAsync(
+            null,
+            "Create",
+            "Project",
+            project.Id,
+            $"Yeni proje oluşturuldu: {project.Name}"
+        );
 
         return (await GetByIdAsync(project.Id))!;
     }

@@ -8,15 +8,17 @@ namespace WorkTracking.Infrastructure.Services;
 public class UserService : IUserService
 {
     private readonly AppDbContext _context;
-
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IAuditLogService _auditLogService;
 
     public UserService(
         AppDbContext context,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        IAuditLogService auditLogService)
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _auditLogService = auditLogService;
     }
 
     public async Task<List<UserDto>> GetAllAsync()
@@ -85,6 +87,13 @@ public class UserService : IUserService
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
+        await _auditLogService.CreateAsync(
+    null,
+    "Create",
+    "User",
+    user.Id,
+    $"Yeni kullanıcı oluşturuldu: {user.Email}"
+);
 
         return (await GetByIdAsync(user.Id))!;
     }

@@ -24,6 +24,7 @@ builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
 builder.Services.AddScoped<IWorkLogService, WorkLogService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddControllers();
 
 builder.Services
