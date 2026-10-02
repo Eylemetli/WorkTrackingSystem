@@ -10,10 +10,14 @@ namespace WorkTracking.Infrastructure.Services;
 public class TaskService : ITaskService
 {
     private readonly AppDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public TaskService(AppDbContext context)
+    public TaskService(
+        AppDbContext context,
+        INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<List<TaskDto>> GetAllAsync()
@@ -106,6 +110,14 @@ public class TaskService : ITaskService
 
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync();
+
+        await _notificationService.CreateAsync(
+    new WorkTracking.Application.DTOs.Notifications.CreateNotificationRequest
+    {
+        UserId = request.AssignedUserId,
+        Title = "Yeni görev atandı",
+        Message = $"Size '{request.Title}' adlı yeni bir görev atandı."
+    });
 
         return (await GetByIdAsync(task.Id))!;
     }

@@ -22,6 +22,7 @@ builder.Services.AddScoped<IProjectMemberService, ProjectMemberService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
 builder.Services.AddScoped<IWorkLogService, WorkLogService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddControllers();
 
 builder.Services
