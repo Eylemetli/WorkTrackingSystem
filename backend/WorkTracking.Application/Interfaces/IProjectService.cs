@@ -8,4 +8,5 @@ public interface IProjectService
     Task<ProjectDto?> GetByIdAsync(int id);
     Task<ProjectDto> CreateAsync(CreateProjectRequest request);
     Task<ProjectDto?> UpdateAsync(int id, UpdateProjectRequest request);
+    Task<IEnumerable<ProjectDto>> GetByManagerAsync(int managerId);
 }

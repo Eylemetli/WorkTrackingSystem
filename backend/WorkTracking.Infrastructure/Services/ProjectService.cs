@@ -131,4 +131,23 @@ public class ProjectService : IProjectService
 
         return await GetByIdAsync(id);
     }
+
+    public async Task<IEnumerable<ProjectDto>> GetByManagerAsync(int managerId)
+    {
+        return await _context.Projects
+            .Where(p => p.ManagerId == managerId)
+            .Select(p => new ProjectDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                ManagerId = p.ManagerId,
+                ManagerName = p.Manager.FirstName + " " + p.Manager.LastName,
+                StartDate = p.StartDate,
+                EndDate = p.EndDate,
+                Status = p.Status.ToString(),
+                IsActive = p.IsActive
+            })
+            .ToListAsync();
+    }
 }
