@@ -46,15 +46,15 @@ export default function LoginPage() {
     }
 
     return (
-        <main className="flex min-h-screen items-center justify-center bg-gray-100">
+        <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
             <div className="w-full max-w-md rounded-xl bg-white p-8 shadow">
-                <h1 className="mb-6 text-center text-2xl font-bold">
-                    Work Tracking System
+                <h1 className="mb-6 text-center text-2xl font-bold text-gray-900">
+                    İş Takip Sistemi
                 </h1>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="mb-1 block text-sm font-medium">
+                        <label className="mb-1 block text-sm font-medium text-gray-800">
                             E-posta
                         </label>
 
@@ -62,14 +62,14 @@ export default function LoginPage() {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full rounded-lg border p-3"
+                            className="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                             placeholder="admin@worktracking.com"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm font-medium">
+                        <label className="mb-1 block text-sm font-medium text-gray-800">
                             Şifre
                         </label>
 
@@ -77,7 +77,7 @@ export default function LoginPage() {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full rounded-lg border p-3"
+                            className="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                             placeholder="Şifreniz"
                             required
                         />
