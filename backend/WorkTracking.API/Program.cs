@@ -38,6 +38,7 @@ builder.Services.AddScoped<IWorkLogService, WorkLogService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddFluentValidationAutoValidation();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateTaskRequestValidator>();
