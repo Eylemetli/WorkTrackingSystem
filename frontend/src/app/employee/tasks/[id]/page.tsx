@@ -7,6 +7,24 @@ import Sidebar from "@/components/Sidebar";
 import api from "@/lib/api";
 import { Task } from "@/types/task";
 
+interface TaskComment {
+    id: number;
+    taskId: number;
+    userId: number;
+    userName: string;
+    comment: string;
+    createdAt: string;
+}
+
+interface WorkLog {
+    id: number;
+    taskId: number;
+    userId: number;
+    durationHours: number;
+    description: string;
+    createdAt: string;
+}
+
 export default function EmployeeTaskDetailPage() {
     const params = useParams();
     const id = params.id;
@@ -14,6 +32,11 @@ export default function EmployeeTaskDetailPage() {
     const [task, setTask] = useState<Task | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [comments, setComments] = useState<TaskComment[]>([]);
+    const [newComment, setNewComment] = useState("");
+    const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
+    const [durationHours, setDurationHours] = useState("");
+    const [workDescription, setWorkDescription] = useState("");
 
     async function loadTask() {
         try {
@@ -31,6 +54,11 @@ export default function EmployeeTaskDetailPage() {
             }
 
             setTask(foundTask);
+            const commentsResponse = await api.get(`/tasks/${id}/comments`);
+            setComments(commentsResponse.data);
+
+            const workLogsResponse = await api.get(`/tasks/${id}/worklogs`);
+            setWorkLogs(workLogsResponse.data);
         } catch {
             setError("Görev detayı alınamadı.");
         } finally {
@@ -47,6 +75,44 @@ export default function EmployeeTaskDetailPage() {
             await loadTask();
         } catch {
             alert("Görev durumu güncellenemedi.");
+        }
+    }
+
+    async function addComment(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        if (!newComment.trim()) return;
+
+        try {
+            await api.post(`/tasks/${id}/comments`, {
+                comment: newComment,
+            });
+
+            setNewComment("");
+
+            const response = await api.get(`/tasks/${id}/comments`);
+            setComments(response.data);
+        } catch {
+            alert("Yorum eklenemedi.");
+        }
+    }
+
+    async function addWorkLog(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        try {
+            await api.post(`/tasks/${id}/worklogs`, {
+                durationHours: Number(durationHours),
+                description: workDescription,
+            });
+
+            setDurationHours("");
+            setWorkDescription("");
+
+            const response = await api.get(`/tasks/${id}/worklogs`);
+            setWorkLogs(response.data);
+        } catch {
+            alert("Çalışma kaydı eklenemedi.");
         }
     }
 
@@ -133,6 +199,119 @@ export default function EmployeeTaskDetailPage() {
                                     <option value={3}>In Review</option>
                                     <option value={4}>Completed</option>
                                 </select>
+                            </div>
+                            <div className="mt-10">
+                                <h2 className="mb-4 text-2xl font-bold text-gray-900">
+                                    Yorumlar
+                                </h2>
+
+                                {comments.length === 0 ? (
+                                    <p className="text-gray-700">
+                                        Bu görev için henüz yorum bulunmuyor.
+                                    </p>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {comments.map((comment) => (
+                                            <div
+                                                key={comment.id}
+                                                className="rounded-lg border border-gray-200 p-4"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-semibold text-gray-900">
+                                                        {comment.userName}
+                                                    </span>
+
+                                                    <span className="text-sm text-gray-500">
+                                                        {new Date(comment.createdAt).toLocaleString("tr-TR")}
+                                                    </span>
+                                                </div>
+
+                                                <p className="mt-2 text-gray-700">
+                                                    {comment.comment}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <form onSubmit={addComment} className="mt-6">
+                                    <textarea
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        placeholder="Yorumunuzu yazın..."
+                                        className="w-full rounded-lg border border-gray-300 p-3 text-gray-900"
+                                        rows={4}
+                                        required
+                                    />
+
+                                    <button
+                                        type="submit"
+                                        className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                                    >
+                                        Yorum Ekle
+                                    </button>
+                                </form>
+                                <div className="mt-10">
+                                    <h2 className="mb-4 text-2xl font-bold text-gray-900">
+                                        Çalışma Kayıtları
+                                    </h2>
+
+                                    {workLogs.length === 0 ? (
+                                        <p className="text-gray-700">
+                                            Henüz çalışma kaydı bulunmuyor.
+                                        </p>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {workLogs.map((log) => (
+                                                <div
+                                                    key={log.id}
+                                                    className="rounded-lg border border-gray-200 p-4"
+                                                >
+                                                    <p className="font-semibold text-gray-900">
+                                                        {log.durationHours} saat
+                                                    </p>
+
+                                                    <p className="mt-1 text-gray-700">
+                                                        {log.description}
+                                                    </p>
+
+                                                    <p className="mt-1 text-sm text-gray-500">
+                                                        {new Date(log.createdAt).toLocaleString("tr-TR")}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <form onSubmit={addWorkLog} className="mt-6 space-y-4">
+                                        <input
+                                            type="number"
+                                            min="0.5"
+                                            step="0.5"
+                                            value={durationHours}
+                                            onChange={(e) => setDurationHours(e.target.value)}
+                                            placeholder="Çalışma süresi (saat)"
+                                            className="w-full rounded-lg border border-gray-300 p-3 text-gray-900"
+                                            required
+                                        />
+
+                                        <textarea
+                                            value={workDescription}
+                                            onChange={(e) => setWorkDescription(e.target.value)}
+                                            placeholder="Yapılan çalışmayı açıklayın..."
+                                            className="w-full rounded-lg border border-gray-300 p-3 text-gray-900"
+                                            rows={3}
+                                            required
+                                        />
+
+                                        <button
+                                            type="submit"
+                                            className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                                        >
+                                            Çalışma Kaydı Ekle
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     )}
