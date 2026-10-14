@@ -5,4 +5,5 @@ namespace WorkTracking.Application.Interfaces;
 public interface IDashboardService
 {
     Task<AdminDashboardDto> GetAdminDashboardAsync();
+    Task<ManagerDashboardDto> GetManagerDashboardAsync(int managerId);
 }

@@ -41,4 +41,46 @@ public class DashboardService : IDashboardService
                     t.Status != WorkTracking.Domain.Enums.TaskStatus.Completed)
         };
     }
+    public async Task<ManagerDashboardDto> GetManagerDashboardAsync(int managerId)
+    {
+        var projectIds = await _context.Projects
+            .Where(p => p.ManagerId == managerId)
+            .Select(p => p.Id)
+            .ToListAsync();
+
+        var totalProjects = projectIds.Count;
+
+        var activeProjects = await _context.Projects
+            .CountAsync(p => p.ManagerId == managerId && p.IsActive);
+
+        var totalTasks = await _context.Tasks
+            .CountAsync(t => projectIds.Contains(t.ProjectId));
+
+        var completedTasks = await _context.Tasks
+            .CountAsync(t =>
+                projectIds.Contains(t.ProjectId) &&
+                t.Status == Domain.Enums.TaskStatus.Completed);
+
+        var inProgressTasks = await _context.Tasks
+            .CountAsync(t =>
+                projectIds.Contains(t.ProjectId) &&
+                t.Status == Domain.Enums.TaskStatus.InProgress);
+
+        var overdueTasks = await _context.Tasks
+            .CountAsync(t =>
+                projectIds.Contains(t.ProjectId) &&
+                t.DueDate.HasValue &&
+                t.DueDate.Value < DateTime.UtcNow &&
+                t.Status != Domain.Enums.TaskStatus.Completed);
+
+        return new ManagerDashboardDto
+        {
+            TotalProjects = totalProjects,
+            ActiveProjects = activeProjects,
+            TotalTasks = totalTasks,
+            CompletedTasks = completedTasks,
+            InProgressTasks = inProgressTasks,
+            OverdueTasks = overdueTasks
+        };
+    }
 }
