@@ -25,6 +25,14 @@ interface WorkLog {
     createdAt: string;
 }
 
+interface TaskFile {
+    id: number;
+    taskId: number;
+    fileName: string;
+    filePath: string;
+    uploadedAt: string;
+}
+
 export default function EmployeeTaskDetailPage() {
     const params = useParams();
     const id = params.id;
@@ -37,6 +45,8 @@ export default function EmployeeTaskDetailPage() {
     const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
     const [durationHours, setDurationHours] = useState("");
     const [workDescription, setWorkDescription] = useState("");
+    const [files, setFiles] = useState<TaskFile[]>([]);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     async function loadTask() {
         try {
@@ -59,6 +69,9 @@ export default function EmployeeTaskDetailPage() {
 
             const workLogsResponse = await api.get(`/tasks/${id}/worklogs`);
             setWorkLogs(workLogsResponse.data);
+
+            const filesResponse = await api.get(`/tasks/${id}/files`);
+            setFiles(filesResponse.data);
         } catch {
             setError("Görev detayı alınamadı.");
         } finally {
@@ -113,6 +126,33 @@ export default function EmployeeTaskDetailPage() {
             setWorkLogs(response.data);
         } catch {
             alert("Çalışma kaydı eklenemedi.");
+        }
+    }
+
+    async function uploadFile(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        if (!selectedFile) {
+            alert("Lütfen bir dosya seçin.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        try {
+            await api.post(`/tasks/${id}/files`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            setSelectedFile(null);
+
+            const response = await api.get(`/tasks/${id}/files`);
+            setFiles(response.data);
+        } catch {
+            alert("Dosya yüklenemedi.");
         }
     }
 
@@ -309,6 +349,51 @@ export default function EmployeeTaskDetailPage() {
                                             className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
                                         >
                                             Çalışma Kaydı Ekle
+                                        </button>
+                                    </form>
+                                </div>
+                                <div className="mt-10">
+                                    <h2 className="mb-4 text-2xl font-bold text-gray-900">
+                                        Dosyalar
+                                    </h2>
+
+                                    {files.length === 0 ? (
+                                        <p className="text-gray-700">
+                                            Henüz dosya yüklenmemiş.
+                                        </p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {files.map((file) => (
+                                                <div
+                                                    key={file.id}
+                                                    className="rounded-lg border border-gray-200 p-4"
+                                                >
+                                                    <p className="font-medium text-gray-900">
+                                                        {file.fileName}
+                                                    </p>
+
+                                                    <p className="mt-1 text-sm text-gray-500">
+                                                        {new Date(file.uploadedAt).toLocaleString("tr-TR")}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <form onSubmit={uploadFile} className="mt-6">
+                                        <input
+                                            type="file"
+                                            onChange={(e) =>
+                                                setSelectedFile(e.target.files?.[0] ?? null)
+                                            }
+                                            className="block w-full rounded-lg border border-gray-300 p-3 text-gray-900"
+                                        />
+
+                                        <button
+                                            type="submit"
+                                            className="mt-3 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
+                                        >
+                                            Dosya Yükle
                                         </button>
                                     </form>
                                 </div>
