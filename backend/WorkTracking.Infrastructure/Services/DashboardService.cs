@@ -83,4 +83,46 @@ public class DashboardService : IDashboardService
             OverdueTasks = overdueTasks
         };
     }
+    public async Task<EmployeeDashboardDto> GetEmployeeDashboardAsync(int employeeId)
+    {
+        var totalTasks = await _context.Tasks
+            .CountAsync(t => t.AssignedUserId == employeeId);
+
+        var pendingTasks = await _context.Tasks
+            .CountAsync(t =>
+                t.AssignedUserId == employeeId &&
+                t.Status == Domain.Enums.TaskStatus.Pending);
+
+        var inProgressTasks = await _context.Tasks
+            .CountAsync(t =>
+                t.AssignedUserId == employeeId &&
+                t.Status == Domain.Enums.TaskStatus.InProgress);
+
+        var inReviewTasks = await _context.Tasks
+            .CountAsync(t =>
+                t.AssignedUserId == employeeId &&
+                t.Status == Domain.Enums.TaskStatus.InReview);
+
+        var completedTasks = await _context.Tasks
+            .CountAsync(t =>
+                t.AssignedUserId == employeeId &&
+                t.Status == Domain.Enums.TaskStatus.Completed);
+
+        var overdueTasks = await _context.Tasks
+            .CountAsync(t =>
+                t.AssignedUserId == employeeId &&
+                t.DueDate.HasValue &&
+                t.DueDate.Value < DateTime.UtcNow &&
+                t.Status != Domain.Enums.TaskStatus.Completed);
+
+        return new EmployeeDashboardDto
+        {
+            TotalTasks = totalTasks,
+            PendingTasks = pendingTasks,
+            InProgressTasks = inProgressTasks,
+            InReviewTasks = inReviewTasks,
+            CompletedTasks = completedTasks,
+            OverdueTasks = overdueTasks
+        };
+    }
 }

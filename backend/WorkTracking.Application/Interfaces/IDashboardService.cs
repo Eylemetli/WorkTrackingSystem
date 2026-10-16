@@ -6,4 +6,5 @@ public interface IDashboardService
 {
     Task<AdminDashboardDto> GetAdminDashboardAsync();
     Task<ManagerDashboardDto> GetManagerDashboardAsync(int managerId);
+    Task<EmployeeDashboardDto> GetEmployeeDashboardAsync(int employeeId);
 }
