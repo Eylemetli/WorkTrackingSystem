@@ -5,6 +5,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Sidebar from "@/components/Sidebar";
 import api from "@/lib/api";
 import { Task } from "@/types/task";
+import Link from "next/link";
 
 export default function ManagerTasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -478,6 +479,12 @@ export default function ManagerTasksPage() {
                                                 >
                                                     Düzenle
                                                 </button>
+                                                <Link
+                                                    href={`/manager/tasks/${task.id}`}
+                                                    className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
+                                                >
+                                                    Detay
+                                                </Link>
                                             </td>
                                         </tr>
                                     ))}
