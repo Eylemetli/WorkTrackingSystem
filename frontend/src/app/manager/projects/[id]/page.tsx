@@ -6,6 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Sidebar from "@/components/Sidebar";
 import api from "@/lib/api";
 import { Project } from "@/types/project";
+import { User } from "@/types/user";
 
 interface ProjectMember {
     id: number;
@@ -23,30 +24,104 @@ export default function ManagerProjectDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [members, setMembers] = useState<ProjectMember[]>([]);
+    const [employees, setEmployees] = useState<User[]>([]);
+    const [selectedUserId, setSelectedUserId] = useState(0);
 
     useEffect(() => {
+        if (!id) return;
+
         async function loadProject() {
+            setLoading(true);
+            setError("");
+
+            // 1. Proje detayını getir
             try {
-                setLoading(true);
-                setError("");
-
                 const response = await api.get(`/manager/projects/${id}`);
-
+                console.log("Proje:", response.data);
                 setProject(response.data);
-
-                const membersResponse = await api.get(`/projects/${id}/members`);
-                setMembers(membersResponse.data);
-            } catch {
+            } catch (err) {
+                console.error("Proje detayı hatası:", err);
                 setError("Proje detayı alınamadı.");
             } finally {
                 setLoading(false);
             }
+
+            // 2. Proje üyelerini getir
+            try {
+                const membersResponse = await api.get(
+                    `/projects/${id}/members`
+                );
+
+                console.log("Üyeler:", membersResponse.data);
+                setMembers(membersResponse.data);
+            } catch (err) {
+                console.error("Üyeler alınamadı:", err);
+            }
+
+            // 3. Çalışanları getir
+            try {
+                const usersResponse = await api.get("/manager/employees");
+
+                console.log("Çalışanlar:", usersResponse.data);
+                setEmployees(usersResponse.data);
+            } catch (err) {
+                console.error("Çalışanlar alınamadı:", err);
+            }
         }
 
-        if (id) {
-            loadProject();
-        }
+        loadProject();
     }, [id]);
+
+    // useEffect dışında
+    async function addMember() {
+        if (selectedUserId === 0) return;
+
+        try {
+            await api.post(`/projects/${id}/members`, {
+                userId: selectedUserId,
+            });
+
+            setSelectedUserId(0);
+
+            const membersResponse = await api.get(`/projects/${id}/members`);
+            setMembers(membersResponse.data);
+
+            const employeesResponse = await api.get("/manager/employees");
+            setEmployees(employeesResponse.data);
+
+        } catch (err: unknown) {
+            alert("Çalışan projeye eklenemedi.");
+            console.error(err);
+        }
+    }
+
+    async function removeMember(userId: number) {
+        const confirmed = window.confirm(
+            "Bu çalışanı projeden çıkarmak istediğinize emin misiniz?"
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await api.delete(`/projects/${id}/members/${userId}`);
+
+            // Proje üyelerini güncelle
+            setMembers((prevMembers) =>
+                prevMembers.filter((member) => member.userId !== userId)
+            );
+
+            setSelectedUserId(0);
+
+        } catch (err: unknown) {
+            alert("Çalışan projeden çıkarılamadı.");
+            console.error(err);
+        }
+    }
+
+    const availableEmployees = employees.filter(
+        (employee) =>
+            !members.some((member) => member.userId === employee.id)
+    );
 
     return (
         <ProtectedRoute allowedRoles={["Manager"]}>
@@ -130,6 +205,34 @@ export default function ManagerProjectDetailPage() {
                             </div>
 
                             <div className="mt-10">
+                                <div className="mb-6 rounded-xl bg-white p-6 shadow">
+                                    <h2 className="mb-4 text-xl font-bold text-gray-900">
+                                        Projeye Çalışan Ekle
+                                    </h2>
+
+                                    <div className="flex gap-3">
+                                        <select
+                                            value={selectedUserId}
+                                            onChange={(e) => setSelectedUserId(Number(e.target.value))}
+                                            className="flex-1 rounded-lg border border-gray-300 p-3 text-gray-900"
+                                        >
+                                            <option value={0}>Çalışan seçiniz</option>
+
+                                            {availableEmployees.map((employee) => (
+                                                <option key={employee.id} value={employee.id}>
+                                                    {employee.firstName} {employee.lastName}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <button
+                                            onClick={addMember}
+                                            className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                                        >
+                                            Projeye Ekle
+                                        </button>
+                                    </div>
+                                </div>
                                 <h2 className="mb-4 text-2xl font-bold text-gray-900">
                                     Proje Üyeleri
                                 </h2>
@@ -146,6 +249,7 @@ export default function ManagerProjectDetailPage() {
                                                     <th className="p-4">Ad Soyad</th>
                                                     <th className="p-4">E-posta</th>
                                                     <th className="p-4">Katılma Tarihi</th>
+                                                    <th className="p-4">İşlem</th>
                                                 </tr>
                                             </thead>
 
@@ -164,6 +268,14 @@ export default function ManagerProjectDetailPage() {
                                                         </td>
                                                         <td className="p-4">
                                                             {new Date(member.joinedAt).toLocaleDateString("tr-TR")}
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <button
+                                                                onClick={() => removeMember(member.userId)}
+                                                                className="rounded-lg bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-700"
+                                                            >
+                                                                Projeden Çıkar
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 ))}
