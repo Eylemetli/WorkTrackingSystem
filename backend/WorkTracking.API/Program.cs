@@ -40,6 +40,7 @@ builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateTaskRequestValidator>();
 builder.Services.AddControllers();

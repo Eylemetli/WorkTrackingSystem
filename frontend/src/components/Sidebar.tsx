@@ -30,6 +30,7 @@ export default function Sidebar({ role }: Props) {
                         <Link href="/admin/departments">Departmanlar</Link>
                         <Link href="/admin/projects">Projeler</Link>
                         <Link href="/admin/audit-logs">Sistem Logları</Link>
+                        <Link href="/admin/reports">Raporlar</Link>
                     </>
                 )}
 
