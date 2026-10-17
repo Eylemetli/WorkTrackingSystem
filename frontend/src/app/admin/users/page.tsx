@@ -25,6 +25,9 @@ export default function AdminUsersPage() {
     const [editRoleId, setEditRoleId] = useState(3);
     const [editDepartmentId, setEditDepartmentId] = useState(1);
 
+    const [search, setSearch] = useState("");
+    const [roleFilter, setRoleFilter] = useState("All");
+
     function startEdit(user: User) {
         setEditingUserId(user.id);
         setEditFirstName(user.firstName);
@@ -115,6 +118,20 @@ export default function AdminUsersPage() {
     useEffect(() => {
         loadUsers();
     }, []);
+
+    const filteredUsers = users.filter((user) => {
+        const searchText = search.toLowerCase();
+
+        const matchesSearch =
+            user.firstName.toLowerCase().includes(searchText) ||
+            user.lastName.toLowerCase().includes(searchText) ||
+            user.email.toLowerCase().includes(searchText);
+
+        const matchesRole =
+            roleFilter === "All" || user.role === roleFilter;
+
+        return matchesSearch && matchesRole;
+    });
 
     return (
         <ProtectedRoute allowedRoles={["Admin"]}>
@@ -285,6 +302,27 @@ export default function AdminUsersPage() {
                         </p>
                     )}
 
+                    <div className="mb-6 flex flex-col gap-4 md:flex-row">
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Ad, soyad veya e-posta ara..."
+                            className="flex-1 rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+                        />
+
+                        <select
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                            className="rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+                        >
+                            <option value="All">Tüm Roller</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Employee">Employee</option>
+                        </select>
+                    </div>
+
                     {!loading && !error && (
                         <div className="overflow-x-auto rounded-xl bg-white shadow">
                             <table className="w-full text-left">
@@ -301,7 +339,7 @@ export default function AdminUsersPage() {
                                 </thead>
 
                                 <tbody className="text-gray-800">
-                                    {users.map((user) => (
+                                    {filteredUsers.map((user) => (
                                         <tr
                                             key={user.id}
                                             className="border-b last:border-b-0"

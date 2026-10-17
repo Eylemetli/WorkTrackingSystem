@@ -31,6 +31,10 @@ export default function ManagerTasksPage() {
     const [editMembers, setEditMembers] = useState<MemberOption[]>([]);
     const [editStatus, setEditStatus] = useState(1);
 
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("All");
+    const [priorityFilter, setPriorityFilter] = useState("All");
+
     interface ProjectOption {
         id: number;
         name: string;
@@ -190,6 +194,23 @@ export default function ManagerTasksPage() {
             );
         }
     }
+
+    const filteredTasks = tasks.filter((task) => {
+        const searchText = search.toLowerCase();
+
+        const matchesSearch =
+            task.title.toLowerCase().includes(searchText) ||
+            task.projectName.toLowerCase().includes(searchText) ||
+            task.assignedUserName.toLowerCase().includes(searchText);
+
+        const matchesStatus =
+            statusFilter === "All" || task.status === statusFilter;
+
+        const matchesPriority =
+            priorityFilter === "All" || task.priority === priorityFilter;
+
+        return matchesSearch && matchesStatus && matchesPriority;
+    });
 
     return (
         <ProtectedRoute allowedRoles={["Manager"]}>
@@ -418,6 +439,40 @@ export default function ManagerTasksPage() {
                             </div>
                         </form>
                     )}
+
+                    <div className="mb-6 grid gap-4 md:grid-cols-3">
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Görev, proje veya çalışan ara..."
+                            className="rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+                        />
+
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+                        >
+                            <option value="All">Tüm Durumlar</option>
+                            <option value="Pending">Pending</option>
+                            <option value="InProgress">In Progress</option>
+                            <option value="InReview">In Review</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+
+                        <select
+                            value={priorityFilter}
+                            onChange={(e) => setPriorityFilter(e.target.value)}
+                            className="rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+                        >
+                            <option value="All">Tüm Öncelikler</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
                     {!loading && !error && tasks.length > 0 && (
                         <div className="overflow-x-auto rounded-xl bg-white shadow">
                             <table className="w-full text-left">
@@ -434,7 +489,7 @@ export default function ManagerTasksPage() {
                                 </thead>
 
                                 <tbody className="text-gray-800">
-                                    {tasks.map((task) => (
+                                    {filteredTasks.map((task) => (
                                         <tr
                                             key={task.id}
                                             className="border-b last:border-b-0"
